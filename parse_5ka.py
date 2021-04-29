@@ -12,7 +12,7 @@ class Parse5ka:
     }
     __parse_time = 0
 
-    def __init__(self, start_url, save_path, delay=1):
+    def __init__(self, start_url, save_path, delay=0.2):
         self.start_url = start_url
         self.save_path = save_path
         self.delay = delay
@@ -46,6 +46,28 @@ class Parse5ka:
         save_path.write_text(json.dumps(data, ensure_ascii=False))
 
 
+class CategoriesParser(Parse5ka):
+    def __init__(self, categories_url, *args, **kwargs):
+        self.categories_url = categories_url
+        super().__init__(*args, **kwargs)
+
+    def _get_categories(self):
+        response = self._get_response(self.categories_url)
+        data = response.json()
+        return data
+
+    def run(self):
+        for category in self._get_categories():
+            category["products"] = []
+            params = f"?categories={category['parent_group_code']}"
+            url = f"{self.start_url}{params}"
+
+            category["products"].extend(list(self._parse(url)))
+            file_name = f"{category['parent_group_code']}.json"
+            cat_path = self.save_path.joinpath(file_name)
+            self.save(category, cat_path)
+
+
 def get_save_dir(dir_name):
     dir_path = Path(__file__).parent.joinpath(dir_name)
     if not dir_path.exists():
@@ -55,6 +77,9 @@ def get_save_dir(dir_name):
 
 if __name__ == "__main__":
     url = "https://5ka.ru/api/v2/special_offers/"
-    products_dir = get_save_dir("products")
-    parser = Parse5ka(url, products_dir)
-    parser.run()
+    cat_url = "https://5ka.ru/api/v2/categories/"
+    save_path_products = get_save_dir("products")
+    save_path_categories = get_save_dir("categories")
+    parser_products = Parse5ka(url, save_path_products)
+    cat_parser = CategoriesParser(cat_url, url, save_path_categories)
+    cat_parser.run()
