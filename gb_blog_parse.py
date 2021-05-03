@@ -6,6 +6,7 @@ import requests
 from urllib.parse import urljoin
 import bs4
 import pymongo
+from database.database import Database
 
 
 class GbBlogParse:
@@ -15,9 +16,9 @@ class GbBlogParse:
     }
     __parse_time = 0
 
-    def __init__(self, stat_url, collection, delay=1.0):
+    def __init__(self, stat_url, database: Database, delay=1.0):
         self.start_url = stat_url
-        self.collection = collection
+        self.db = database
         self.delay = delay
         self.done_urls = set()
         self.tasks = []
@@ -104,13 +105,14 @@ class GbBlogParse:
                 self.save(result)
 
     def save(self, data):
-        self.collection.insert_one(data)
+        self.db.add_post(data)
         print(1)
 
 
 if __name__ == "__main__":
-    mongo_client = pymongo.MongoClient("mongodb://localhost:27017")
-    db = mongo_client["gb_parse_26_04_2021"]
-    collection = db["gb_blog_parse"]
-    parser = GbBlogParse("https://gb.ru/posts", collection, delay=0.1)
+    # mongo_client = pymongo.MongoClient("mongodb://localhost:27017")
+    # db = mongo_client["gb_parse_26_04_2021"]
+    # collection = db["gb_blog_parse"]
+    db = Database("sqlite:///gb_blog.db")
+    parser = GbBlogParse("https://gb.ru/posts", db, delay=0.1)
     parser.run()
