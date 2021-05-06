@@ -1,11 +1,9 @@
-import json
 import time
 import typing
 
 import requests
 from urllib.parse import urljoin
 import bs4
-import pymongo
 from database.database import Database
 
 
@@ -106,7 +104,6 @@ class GbBlogParse:
 
     def save(self, data):
         self.db.add_post(data)
-        print(1)
 
 
 if __name__ == "__main__":
