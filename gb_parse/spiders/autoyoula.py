@@ -55,9 +55,7 @@ class AutoyoulaSpider(scrapy.Spider):
 
     def car_parse(self, response):
         loader = AutoyoulaLoader(response=response)
-        loader.add_value("url", "")
         loader.add_value("url", response.url)
-        loader.add_value("url", "hello")
         for xpath_strict in self._xpath_data_selectors:
             loader.add_xpath(**xpath_strict)
         yield loader.load_item()
